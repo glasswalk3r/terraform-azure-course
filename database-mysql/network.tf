@@ -27,10 +27,6 @@ resource "azurerm_network_security_group" "allow-ssh" {
   location            = var.location
   resource_group_name = azurerm_resource_group.demo.name
 
-  depends_on = [
-    azurerm_network_interface.demo-instance
-  ]
-
   security_rule {
     name                       = "SSH"
     priority                   = 1001

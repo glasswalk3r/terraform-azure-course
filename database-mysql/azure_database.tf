@@ -12,7 +12,7 @@ resource "random_string" "server_name" {
 resource "random_password" "demo" {
   length           = 16
   special          = true
-  override_special = "!#$%&*()-_=+[]{}<>:?"
+  override_special = "!#%&*-_+:"
 }
 
 resource "local_sensitive_file" "db_credentials" {
