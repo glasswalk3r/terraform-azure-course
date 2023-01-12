@@ -6,3 +6,4 @@ mykey.pub
 .terraform
 .terraform.tfstate.lock.info
 .DS_Store
+db_credentials.txt
