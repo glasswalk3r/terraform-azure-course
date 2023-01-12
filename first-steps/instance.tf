@@ -1,30 +1,3 @@
-# demo instance
-resource "azurerm_linux_virtual_machine" "demo-instance" {
-  name                  = "${var.prefix}-vm"
-  location              = var.location
-  resource_group_name   = azurerm_resource_group.demo.name
-  network_interface_ids = [azurerm_network_interface.demo-instance.id]
-  size                  = "Standard_B1ls"
-  admin_username        = var.vm_admin_user
-
-  source_image_reference {
-    publisher = "Canonical"
-    sku       = "22_04-lts-gen2"
-    offer     = "0001-com-ubuntu-server-jammy"
-    version   = "latest"
-  }
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  admin_ssh_key {
-    public_key = file("${var.private_ssh_key}.pub")
-    username   = var.vm_admin_user
-  }
-}
-
 resource "azurerm_network_interface" "demo-instance" {
   name                = "${var.prefix}-instance1"
   location            = var.location
@@ -38,9 +11,19 @@ resource "azurerm_network_interface" "demo-instance" {
   }
 }
 
+module "generic_vm" {
+  source               = "../generic-vm"
+  vm_admin_user        = var.vm_admin_user
+  resource_group       = azurerm_resource_group.demo.name
+  private_ssh_key      = "${path.cwd}/${var.private_ssh_key}"
+  prefix               = var.prefix
+  network_interface_id = azurerm_network_interface.demo-instance.id
+  location             = var.location
+}
+
 resource "azurerm_network_interface_security_group_association" "allow-ssh" {
   network_interface_id      = azurerm_network_interface.demo-instance.id
-  network_security_group_id = azurerm_network_security_group.allow-ssh.id
+  network_security_group_id = module.allow-ssh.sec_group_id
 }
 
 resource "azurerm_public_ip" "demo-instance" {
