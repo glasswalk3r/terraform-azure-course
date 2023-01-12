@@ -1,16 +1,39 @@
+locals {
+  admin_login = "mysqladmin"
+}
+
+resource "random_string" "server_name" {
+  length  = 8
+  special = false
+  // "name" did not match regex "^[0-9a-z][-0-9a-z]{1,61}[0-9a-z]$"
+  upper = false
+}
+
+resource "random_password" "demo" {
+  length           = 16
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
+}
+
+resource "local_sensitive_file" "db_credentials" {
+  content  = "login = ${local.admin_login}\npassword = ${random_password.demo.result}\n"
+  filename = "${path.module}/db_credentials.txt"
+  file_permission = "0600"
+}
+
 resource "azurerm_mysql_server" "demo" {
-  name                = "mysql-training"
+  name                = "mysql-demo-${random_string.server_name.result}"
   location            = azurerm_resource_group.demo.location
   resource_group_name = azurerm_resource_group.demo.name
 
-  sku_name   = "GP_Gen5_2"
+  sku_name = "GP_Gen5_2"
 
   storage_mb                   = 5120
   backup_retention_days        = 7
   geo_redundant_backup_enabled = false
 
-  administrator_login          = "mysqladmin"
-  #administrator_login_password = "SETSECUREPASS"
+  administrator_login          = local.admin_login
+  administrator_login_password = random_password.demo.result
   version                      = "5.7"
   ssl_enforcement_enabled      = true
 }
